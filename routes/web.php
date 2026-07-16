@@ -17,3 +17,7 @@ Route::get('/cuestionario', function () {
 Route::get('/progreso', function (){
     return view('progreso');
 });
+
+Route::get('/citas', function () {
+    return view('citas');
+});
