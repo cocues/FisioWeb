@@ -17,7 +17,7 @@
     </script>
 </head>
 <body class="bg-fisiobg font-sans text-gray-800 antialiased min-h-screen flex flex-col">
-0
+
     <!-- NAVEGACIÓN MAESTRA -->
     <nav class="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-100">
         <div class="flex items-center gap-2">
