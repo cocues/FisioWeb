@@ -12,10 +12,12 @@
             <h1 class="text-3xl font-serif text-gray-900 font-bold">Gestión de Citas</h1>
             <p class="text-sm text-gray-500 mt-1">Administra las solicitudes de tus pacientes agendadas desde la app móvil.</p>
         </div>
-        <button class="bg-fisiogreen hover:bg-teal-900 text-white font-medium px-5 py-2.5 rounded-xl transition-colors shadow-sm flex items-center gap-2">
+        
+        <!-- CAMBIAMOS EL <button> POR UN <a> QUE LLEVE A LA RUTA /citas/crear -->
+        <a href="/citas/crear" class="bg-fisiogreen hover:bg-teal-900 text-white font-medium px-5 py-2.5 rounded-xl transition-colors shadow-sm flex items-center gap-2">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
             Nueva Cita Manual
-        </button>
+        </a>
     </div>
 
     <!-- Tabla Principal de Citas -->
@@ -61,14 +63,36 @@
                                 <span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-orange-50 text-orange-700 border border-orange-100">
                                     <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span> Pendiente
                                 </span>
+                            @elseif($cita->estado == 'cancelada')
+                                <span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-100">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Cancelada
+                                </span>
                             @else
                                 <span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-100">
                                     <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> {{ ucfirst($cita->estado) }}
                                 </span>
                             @endif
                         </td>
-                        <td class="px-6 py-4 text-right">
-                            <button class="text-sm font-medium text-fisiogreen hover:underline px-2 py-1">Ver detalles</button>
+                        <td class="px-6 py-4 text-right flex justify-end gap-2">
+                            @if($cita->estado == 'pendiente')
+                                <!-- Botón Confirmar -->
+                                <form action="/citas/{{ $cita->id }}/estado" method="POST">
+                                    @csrf
+                                    @method('PUT')
+                                    <input type="hidden" name="estado" value="confirmada">
+                                    <button type="submit" class="text-xs font-medium text-white bg-fisiogreen hover:bg-teal-900 px-3 py-1.5 rounded-lg transition-colors shadow-sm">Confirmar</button>
+                                </form>
+                                
+                                <!-- Botón Cancelar -->
+                                <form action="/citas/{{ $cita->id }}/estado" method="POST">
+                                    @csrf
+                                    @method('PUT')
+                                    <input type="hidden" name="estado" value="cancelada">
+                                    <button type="submit" class="text-xs font-medium text-white bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded-lg transition-colors shadow-sm">Cancelar</button>
+                                </form>
+                            @else
+                                <button class="text-xs font-medium text-gray-400 bg-gray-100 px-3 py-1.5 rounded-lg cursor-not-allowed">Sin acciones</button>
+                            @endif
                         </td>
                     </tr>
                     @empty

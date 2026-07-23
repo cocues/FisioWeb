@@ -43,7 +43,7 @@
             <a href="/cuestionario" class="hover:text-fisiogreen transition">Cuestionario</a>
             <a href="/progreso" class="hover:text-fisiogreen transition">Mi Progreso</a>
             <a href="#" class="hover:text-fisiogreen transition">Blog</a>
-            <a href="#" class="hover:text-fisiogreen transition">Citas</a>
+            <a href="/citas" class="hover:text-fisiogreen transition">Citas</a>
             <a href="#" class="hover:text-fisiogreen transition">FAQ</a>
         </div>
 
