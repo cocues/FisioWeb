@@ -13,11 +13,20 @@
             <p class="text-sm text-gray-500 mt-1">Administra las solicitudes de tus pacientes agendadas desde la app móvil.</p>
         </div>
         
-        <!-- CAMBIAMOS EL <button> POR UN <a> QUE LLEVE A LA RUTA /citas/crear -->
-        <a href="/citas/crear" class="bg-fisiogreen hover:bg-teal-900 text-white font-medium px-5 py-2.5 rounded-xl transition-colors shadow-sm flex items-center gap-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-            Nueva Cita Manual
-        </a>
+        <!-- Aquí agregamos los dos botones juntos -->
+        <div class="flex gap-3">
+            <!-- BOTÓN MAGICO DE PDF -->
+            <a href="/citas/reporte/pdf" class="bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300 font-medium px-4 py-2.5 rounded-xl transition-colors shadow-sm flex items-center gap-2 text-sm">
+                <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9h2v9h-2z"/></svg>
+                Exportar PDF
+            </a>
+
+            <!-- BOTÓN ORIGINAL -->
+            <a href="/citas/crear" class="bg-fisiogreen hover:bg-teal-900 text-white font-medium px-5 py-2.5 rounded-xl transition-colors shadow-sm flex items-center gap-2 text-sm">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                Nueva Cita Manual
+            </a>
+        </div>
     </div>
 
     <!-- Tabla Principal de Citas -->
@@ -39,7 +48,6 @@
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     
-                    <!-- Bucle Dinámico: Laravel dibujará una fila por cada cita en la BD -->
                     @forelse($citas as $cita)
                     <tr class="hover:bg-gray-50 transition-colors">
                         <td class="px-6 py-4">
