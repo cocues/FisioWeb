@@ -86,7 +86,8 @@ Route::middleware([\App\Http\Middleware\CheckRoleDoctor::class])->group(function
         $cita->estado = 'confirmada'; 
         $cita->save();
 
-        return redirect('/citas');
+        // Agregamos el mensaje de éxito
+        return redirect('/citas')->with('success', '¡Nueva cita agendada con éxito!');
     });
 
     // 5. Cambiar estado de la cita (Confirmar / Cancelar)
@@ -95,6 +96,10 @@ Route::middleware([\App\Http\Middleware\CheckRoleDoctor::class])->group(function
         if ($cita) {
             $cita->estado = $request->input('estado');
             $cita->save();
+            
+            // Evaluamos qué mensaje mostrar dependiendo del estado
+            $mensaje = $cita->estado == 'confirmada' ? 'La cita ha sido confirmada.' : 'La cita fue cancelada correctamente.';
+            return redirect('/citas')->with('success', $mensaje);
         }
         return redirect('/citas');
     });
