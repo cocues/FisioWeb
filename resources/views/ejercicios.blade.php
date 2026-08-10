@@ -3,86 +3,149 @@
 @section('title', 'Ejercicios')
 
 @section('content')
+
+@php
+// =========================================================
+// CATÁLOGO COMPLETO DE 18 EJERCICIOS (Con IDs extraídos)
+// =========================================================
+$lista_ejercicios = [
+    // ESPALDA
+    ['titulo' => 'Cat-Cow (Gato-Vaca)', 'desc' => 'Mejora la movilidad y flexibilidad de la columna vertebral baja y torácica.', 'youtube_id' => 'BWxZLqWKtGE', 'zona' => 'Espalda', 'nivel' => 'Básico', 'tiempo' => '5 min', 'reps' => '3 × 10 rep'],
+    ['titulo' => 'Enhebrar la aguja', 'desc' => 'Estiramiento profundo para liberar la tensión en la zona torácica y hombros.', 'youtube_id' => '0PI_GOIGTvA', 'zona' => 'Espalda', 'nivel' => 'Intermedio', 'tiempo' => '8 min', 'reps' => '3 × 10 rep'],
+    ['titulo' => 'Jefferson Curl', 'desc' => 'Fortalece y estira la cadena posterior. Realizar con peso ligero y control.', 'youtube_id' => 'zoyE8-vaKeE', 'zona' => 'Espalda', 'nivel' => 'Avanzado', 'tiempo' => '10 min', 'reps' => '4 × 8 rep'],
+    
+    // HOMBRO
+    ['titulo' => 'Rotación Externa con Banda', 'desc' => 'Fortalece el manguito rotador y previene lesiones articulares. Mantén el codo pegado.', 'youtube_id' => 'iNn_sNA6TbU', 'zona' => 'Hombro', 'nivel' => 'Básico', 'tiempo' => '5 min', 'reps' => '3 × 15 rep'],
+    ['titulo' => 'Serie Y-T-W (Banco Inclinado)', 'desc' => 'Mejora la estabilidad escapular y la postura general de los hombros.', 'youtube_id' => 'itvKYjCRZK0', 'zona' => 'Hombro', 'nivel' => 'Intermedio', 'tiempo' => '10 min', 'reps' => '3 × 12 rep'],
+    ['titulo' => 'Face Pull Isométrico', 'desc' => 'Trabajo intenso para los deltoides posteriores y trapecios. Sostén la contracción.', 'youtube_id' => 'JWGLMIvvDvM', 'zona' => 'Hombro', 'nivel' => 'Avanzado', 'tiempo' => '8 min', 'reps' => '4 × 10 rep'],
+
+        ['titulo' => 'Sentadilla Española', 'desc' => 'Fortalecimiento isométrico pesado, ideal para tendinopatías rotulianas severas.', 'youtube_id' => '9GE1LxLKXP4', 'zona' => 'Rodilla', 'nivel' => 'Avanzado', 'tiempo' => '12 min', 'reps' => '4 × 30s'],
+    ];
+
+    // =========================================================
+    // UNIR VIDEOS SUBIDOS POR EL DOCTOR (DESDE LA BASE DE DATOS)
+    // =========================================================
+    if(isset($ejercicios_db)) {
+        foreach($ejercicios_db as $ej) {
+            $lista_ejercicios[] = [
+                'titulo' => $ej->titulo,
+                'desc' => $ej->descripcion,
+                'youtube_id' => null, // No es de YouTube
+                'video_path' => $ej->imagen_url ?? null, // Es un video local
+                'zona' => $ej->lesion_recomendada ?? 'General',
+                'nivel' => $ej->dificultad ?? 'Básico',
+                'tiempo' => $ej->duracion ?? '5 min',
+                'reps' => $ej->repeticiones ?? '10 rep'
+            ];
+        }
+    }
+@endphp
+
 <!-- Contenido Principal: Biblioteca de Ejercicios -->
 <div class="max-w-6xl mx-auto px-6 py-10">
     <!-- Encabezado -->
     <div class="mb-8 animate-[fadeIn_0.3s_ease-out]">
-        <span class="text-xs font-bold tracking-widest uppercase text-emerald-600 mb-2 block">
-            Biblioteca
-        </span>
-        <h1 class="text-4xl font-serif text-gray-900 mb-2">
-            Ejercicios terapéuticos
-        </h1>
-        <p class="text-sm text-gray-500">
-            Selecciona una zona corporal y encuentra el programa adecuado para tu recuperación.
-        </p>
-    </div>
-
-    <!-- Filtros y Buscador -->
-    <div class="flex flex-col sm:flex-row gap-4 mb-8">
-        <div class="relative flex-1 max-w-sm">
-            <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            <input type="text" placeholder="Buscar ejercicio..." class="w-full pl-9 pr-4 py-2.5 text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-fisiogreen transition-colors shadow-sm">
-        </div>
-        <div class="flex flex-wrap gap-2">
-            <button class="px-4 py-2 rounded-xl text-xs font-medium bg-fisiogreen text-white">Todos</button>
-            <button class="px-4 py-2 rounded-xl text-xs font-medium bg-white border border-gray-200 text-gray-500 hover:border-fisiogreen hover:text-fisiogreen transition-colors">Espalda</button>
-            <button class="px-4 py-2 rounded-xl text-xs font-medium bg-white border border-gray-200 text-gray-500 hover:border-fisiogreen hover:text-fisiogreen transition-colors">Hombro</button>
-            <button class="px-4 py-2 rounded-xl text-xs font-medium bg-white border border-gray-200 text-gray-500 hover:border-fisiogreen hover:text-fisiogreen transition-colors">Rodilla</button>
+        <span class="text-xs font-bold tracking-widest uppercase text-emerald-600 mb-2 block">Categorías</span>
+        <div class="flex flex-wrap gap-2 items-center">
+            <button onclick="filtrarEjercicios('todos', this)" class="btn-filtro px-4 py-2 rounded-xl text-xs font-medium bg-fisiogreen text-white border border-transparent transition-colors">Todos</button>
+            <button onclick="filtrarEjercicios('espalda', this)" class="btn-filtro px-4 py-2 rounded-xl text-xs font-medium bg-white border border-gray-200 text-gray-500 hover:border-fisiogreen hover:text-fisiogreen transition-colors">Espalda</button>
+            <button onclick="filtrarEjercicios('hombro', this)" class="btn-filtro px-4 py-2 rounded-xl text-xs font-medium bg-white border border-gray-200 text-gray-500 hover:border-fisiogreen hover:text-fisiogreen transition-colors">Hombro</button>
+            <button onclick="filtrarEjercicios('cadera', this)" class="btn-filtro px-4 py-2 rounded-xl text-xs font-medium bg-white border border-gray-200 text-gray-500 hover:border-fisiogreen hover:text-fisiogreen transition-colors">Cadera</button>
+            <button onclick="filtrarEjercicios('cuello', this)" class="btn-filtro px-4 py-2 rounded-xl text-xs font-medium bg-white border border-gray-200 text-gray-500 hover:border-fisiogreen hover:text-fisiogreen transition-colors">Cuello</button>
+            <button onclick="filtrarEjercicios('tobillo', this)" class="btn-filtro px-4 py-2 rounded-xl text-xs font-medium bg-white border border-gray-200 text-gray-500 hover:border-fisiogreen hover:text-fisiogreen transition-colors">Tobillo</button>
+            <button onclick="filtrarEjercicios('rodilla', this)" class="btn-filtro px-4 py-2 rounded-xl text-xs font-medium bg-white border border-gray-200 text-gray-500 hover:border-fisiogreen hover:text-fisiogreen transition-colors">Rodilla</button>
+            
+            <!-- BOTÓN PARA SUBIR VIDEO (SOLO DOCTORES) -->
+            @if(session('rol') == 'doctor')
+            <a href="/ejercicios/crear" class="ml-2 bg-fisiogreen text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-emerald-900 transition flex items-center gap-1 shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                Subir Video Local
+            </a>
+            @endif
         </div>
     </div>
 
-    <!-- Grid de Tarjetas (Ejercicios de prueba) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- GRID DE VIDEOS: Exactamente 2 columnas -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
         
-        <!-- Tarjeta 1 -->
-        <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow duration-300 group cursor-pointer">
-            <div class="relative overflow-hidden h-48">
-                <img src="https://images.unsplash.com/photo-1540206276207-3af25c08abc4?w=400&h=260&fit=crop&auto=format" alt="Estiramiento lumbar" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                <div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-fisiogreen">
-                        <svg class="w-6 h-6 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                    </div>
+        <!-- BUCLE DE LARAVEL PARA DIBUJAR LOS VIDEOS AUTOMÁTICAMENTE -->
+        @foreach($lista_ejercicios as $ejercicio)
+            <div class="tarjeta-ejercicio bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col" data-zona="{{ strtolower($ejercicio['zona']) }}">
+                
+                <!-- Reproductor de YouTube o Local -->
+                <div class="relative w-full aspect-video bg-black">
+                    @if(!empty($ejercicio['youtube_id']))
+                        <iframe 
+                            class="w-full h-full"
+                            src="https://www.youtube.com/embed/{{ $ejercicio['youtube_id'] }}" 
+                            title="{{ $ejercicio['titulo'] }}" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            allowfullscreen>
+                        </iframe>
+                    @elseif(!empty($ejercicio['video_path']))
+                        <!-- El reproductor nativo de HTML5 para videos locales -->
+                        <video class="w-full h-full object-cover" controls preload="metadata">
+                            <source src="{{ asset('storage/' . $ejercicio['video_path']) }}" type="video/mp4">
+                            Tu navegador no soporta videos.
+                        </video>
+                    @endif
                 </div>
-                <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">Básico</span>
-                <span class="absolute top-3 right-3 px-3 py-1 bg-white/90 backdrop-blur rounded-full text-xs font-medium text-gray-700">Espalda</span>
-            </div>
-            <div class="p-5">
-                <h3 class="text-lg font-serif text-gray-900 mb-2 leading-snug">Estiramiento lumbar en decúbito</h3>
-                <p class="text-sm text-gray-500 mb-4 line-clamp-2">Reduce la tensión lumbar y mejora la movilidad de la columna baja.</p>
-                <div class="flex items-center justify-between">
-                    <div class="flex gap-4 text-xs text-gray-500 font-medium">
-                        <span class="flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 10 min</span>
-                        <span class="flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> 3 × 30s</span>
-                    </div>
-                    <span class="flex items-center gap-1 text-xs text-fisiogreen font-bold">Ver guía <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></span>
-                </div>
-            </div>
-        </div>
 
-        <!-- Tarjeta 2 -->
-        <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow duration-300 group cursor-pointer">
-            <div class="relative overflow-hidden h-48">
-                <img src="https://images.unsplash.com/photo-1645005513713-9e2b92a687d3?w=400&h=260&fit=crop&auto=format" alt="Hombro" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                <div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-fisiogreen"><svg class="w-6 h-6 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
-                </div>
-                <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">Básico</span>
-                <span class="absolute top-3 right-3 px-3 py-1 bg-white/90 backdrop-blur rounded-full text-xs font-medium text-gray-700">Hombro</span>
-            </div>
-            <div class="p-5">
-                <h3 class="text-lg font-serif text-gray-900 mb-2 leading-snug">Movilización pendular de Codman</h3>
-                <p class="text-sm text-gray-500 mb-4 line-clamp-2">Recupera el rango de movimiento glenohumeral sin carga articular.</p>
-                <div class="flex items-center justify-between">
-                    <div class="flex gap-4 text-xs text-gray-500 font-medium">
-                        <span class="flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 8 min</span>
-                        <span class="flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> 2 × 20 rep</span>
+                <!-- Detalles del Ejercicio -->
+                <div class="p-5 flex-1 flex flex-col">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-xl font-serif text-gray-900 leading-snug">{{ $ejercicio['titulo'] }}</h3>
                     </div>
-                    <span class="flex items-center gap-1 text-xs text-fisiogreen font-bold">Ver guía <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></span>
+                    
+                    <div class="flex gap-2 mb-3">
+                        <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider {{ $ejercicio['nivel'] == 'Básico' ? 'bg-emerald-100 text-emerald-700' : ($ejercicio['nivel'] == 'Intermedio' ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700') }}">
+                            {{ $ejercicio['nivel'] }}
+                        </span>
+                        <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-600">
+                            {{ $ejercicio['zona'] }}
+                        </span>
+                    </div>
+
+                    <p class="text-sm text-gray-500 mb-6 flex-1">{{ $ejercicio['desc'] }}</p>
+                    
+                    <div class="flex gap-4 text-sm text-gray-600 font-medium border-t border-gray-100 pt-4 mt-auto">
+                        <span class="flex items-center gap-1.5"><svg class="w-4 h-4 text-fisiogreen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> {{ $ejercicio['tiempo'] }}</span>
+                        <span class="flex items-center gap-1.5"><svg class="w-4 h-4 text-fisiogreen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> {{ $ejercicio['reps'] }}</span>
+                    </div>
                 </div>
             </div>
-        </div>
+        @endforeach
 
     </div>
 </div>
+
+<!-- SCRIPT PARA FILTRAR EJERCICIOS INSTANTÁNEAMENTE -->
+<script>
+    function filtrarEjercicios(zonaSeleccionada, botonClickeado) {
+        // 1. Quitarle el color verde a todos los botones y ponerlos blancos
+        let botones = document.querySelectorAll('.btn-filtro');
+        botones.forEach(btn => {
+            btn.classList.remove('bg-fisiogreen', 'text-white', 'border-transparent');
+            btn.classList.add('bg-white', 'text-gray-500', 'border-gray-200');
+        });
+
+        // 2. Ponerle el color verde (activo) al botón que el usuario clickeó
+        botonClickeado.classList.remove('bg-white', 'text-gray-500', 'border-gray-200');
+        botonClickeado.classList.add('bg-fisiogreen', 'text-white', 'border-transparent');
+
+        // 3. Mostrar u ocultar las tarjetas dependiendo de la zona
+        let tarjetas = document.querySelectorAll('.tarjeta-ejercicio');
+        tarjetas.forEach(tarjeta => {
+            let zonaTarjeta = tarjeta.getAttribute('data-zona'); // Lee si es 'espalda', 'hombro', etc.
+            
+            // Si el usuario eligió "todos" o si la zona de la tarjeta coincide, la mostramos
+            if (zonaSeleccionada === 'todos' || zonaTarjeta.includes(zonaSeleccionada)) {
+                tarjeta.style.display = 'flex';
+            } else {
+                tarjeta.style.display = 'none'; // La ocultamos
+            }
+        });
+    }
+</script>
 @endsection

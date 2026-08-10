@@ -7,21 +7,41 @@ use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 Route::get('/', function () { return view('inicio'); });
-Route::get('/ejercicios', function () { return view('ejercicios'); });
+
+// 1. REEMPLAZAMOS LA RUTA DE EJERCICIOS PARA QUE LEA LA BASE DE DATOS
+Route::get('/ejercicios', function () { 
+    // Obtenemos los ejercicios subidos por los doctores (si la tabla existe)
+    try {
+        $ejercicios_db = \App\Models\Ejercicio::all();
+    } catch (\Exception $e) {
+        $ejercicios_db = []; // Si aún no hay tabla, no se rompe
+    }
+    return view('ejercicios', ['ejercicios_db' => $ejercicios_db]); 
+});
+
 Route::get('/cuestionario', function () { return view('cuestionario'); });
 Route::get('/progreso', function () { return view('progreso'); });
 
 // ==========================================
-// RUTAS DE PRUEBA (Simulando Inicios de Sesión)
+// PORTAL DE ACCESO (Login Visual)
 // ==========================================
+Route::get('/login', function () {
+    return view('login');
+});
+
 Route::get('/simular-login/{rol}', function ($rol) {
     session(['rol' => $rol]); 
-    return "Iniciaste sesión como: <b>" . strtoupper($rol) . "</b>. <br><br> <a href='/citas'>Ir al panel de Citas</a> | <a href='/logout'>Cerrar sesión</a>";
+    
+    if($rol == 'doctor') {
+        return redirect('/dashboard')->with('success', '¡Bienvenido Doctor! Sesión iniciada.');
+    } else {
+        return redirect('/')->with('success', '¡Bienvenido Paciente! Sesión iniciada.');
+    }
 });
 
 Route::get('/logout', function () {
     session()->forget('rol'); 
-    return "Sesión cerrada. Ahora eres un paciente o invitado. <br><br> <a href='/citas'>Intenta ir a Citas (Te debe dar error)</a>";
+    return redirect('/')->with('success', 'Sesión cerrada correctamente.');
 });
 
 // ==========================================
@@ -102,6 +122,35 @@ Route::middleware([\App\Http\Middleware\CheckRoleDoctor::class])->group(function
             return redirect('/citas')->with('success', $mensaje);
         }
         return redirect('/citas');
+    });
+
+    // ==========================================
+    // NUEVAS RUTAS: SUBIR VIDEOS LOCALES
+    // ==========================================
+    Route::get('/ejercicios/crear', function () {
+        return view('ejercicios_crear');
+    });
+
+    Route::post('/ejercicios', function (Request $request) {
+        $ejercicio = new \App\Models\Ejercicio();
+        $ejercicio->titulo = $request->input('titulo');
+        $ejercicio->descripcion = $request->input('descripcion');
+        $ejercicio->lesion_recomendada = $request->input('zona');
+        $ejercicio->dificultad = $request->input('nivel');
+        $ejercicio->duracion = $request->input('tiempo');
+        $ejercicio->repeticiones = $request->input('reps');
+
+        // MAGIA PARA GUARDAR EL VIDEO LOCAL
+        if ($request->hasFile('video')) {
+            // Guarda el video en storage/app/public/videos_ejercicios
+            $path = $request->file('video')->store('videos_ejercicios', 'public');
+            // Reutilizamos la columna imagen_url de tu BD para guardar la ruta del video sin romper nada
+            $ejercicio->imagen_url = $path; 
+        }
+
+        $ejercicio->save();
+
+        return redirect('/ejercicios')->with('success', '¡Video subido y guardado exitosamente en el servidor!');
     });
     
 });

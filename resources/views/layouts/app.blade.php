@@ -34,12 +34,25 @@
                 <a href="/ejercicios" class="hover:text-fisiogreen transition {{ request()->is('ejercicios') ? 'text-fisiogreen bg-green-50 px-3 py-1.5 rounded-full' : '' }}">Ejercicios</a>
                 <a href="/cuestionario" class="hover:text-fisiogreen transition {{ request()->is('cuestionario') ? 'text-fisiogreen bg-green-50 px-3 py-1.5 rounded-full' : '' }}">Cuestionario</a>
                 <a href="/progreso" class="hover:text-fisiogreen transition {{ request()->is('progreso') ? 'text-fisiogreen bg-green-50 px-3 py-1.5 rounded-full' : '' }}">Mi Progreso</a>
-                <a href="/citas" class="hover:text-fisiogreen transition {{ request()->is('citas') ? 'text-fisiogreen bg-green-50 px-3 py-1.5 rounded-full' : '' }}">Citas</a>
-                <a href="/dashboard" class="hover:text-fisiogreen transition {{ request()->is('dashboard') ? 'text-fisiogreen bg-green-50 px-3 py-1.5 rounded-full' : '' }}">Dashboard</a>
+                
+                @if(session('rol') == 'doctor')
+                    <a href="/citas" class="hover:text-fisiogreen transition {{ request()->is('citas') ? 'text-fisiogreen bg-green-50 px-3 py-1.5 rounded-full' : '' }}">Citas</a>
+                    <a href="/dashboard" class="hover:text-fisiogreen transition {{ request()->is('dashboard') ? 'text-fisiogreen bg-green-50 px-3 py-1.5 rounded-full' : '' }}">Dashboard</a>
+                @endif
             </div>
 
             <div class="flex items-center gap-4">
-                <a href="#" class="hidden sm:block text-sm font-medium text-gray-600 hover:text-fisiogreen">Iniciar sesión</a>
+                @if(session('rol'))
+                    <!-- Si ya inició sesión (Doctor o Paciente) -->
+                    <span class="hidden md:block text-xs font-bold text-fisiogreen bg-green-50 px-2 py-1 rounded-md uppercase tracking-wider">
+                        {{ session('rol') }}
+                    </span>
+                    <a href="/logout" class="hidden sm:block text-sm font-medium text-red-500 hover:text-red-700 transition">Cerrar sesión</a>
+                @else
+                    <!-- Si es un invitado -->
+                    <a href="/login" class="hidden sm:block text-sm font-medium text-gray-600 hover:text-fisiogreen transition">Iniciar sesión</a>
+                @endif
+                
                 <!-- Botón Pedir Cita ARREGLADO (ahora es un enlace <a>) -->
                 <a href="/citas" class="hidden sm:block bg-fisiogreen text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-emerald-900 transition">Pedir cita</a>
                 
@@ -53,14 +66,22 @@
         <!-- Menú Desplegable (Móvil) -->
         <div id="mobile-menu" class="hidden md:hidden absolute top-full left-0 w-full bg-white border-b border-gray-100 shadow-2xl z-50">
             <div class="flex flex-col px-6 py-5 gap-4 text-base font-medium text-gray-600">
-                <a href="/dashboard" class="hover:text-fisiogreen">Dashboard</a>
                 <a href="/" class="hover:text-fisiogreen">Inicio</a>
                 <a href="/ejercicios" class="hover:text-fisiogreen">Ejercicios</a>
                 <a href="/cuestionario" class="hover:text-fisiogreen">Cuestionario</a>
                 <a href="/progreso" class="hover:text-fisiogreen">Mi Progreso</a>
-                <a href="/citas" class="hover:text-fisiogreen">Citas</a>
+                
+                @if(session('rol') == 'doctor')
+                    <a href="/dashboard" class="hover:text-fisiogreen">Dashboard</a>
+                    <a href="/citas" class="hover:text-fisiogreen">Citas</a>
+                @endif
+                
                 <hr class="border-gray-100 my-1">
-                <a href="#" class="text-fisiogreen font-bold">Iniciar sesión</a>
+                @if(session('rol'))
+                    <a href="/logout" class="text-red-500 font-bold">Cerrar sesión</a>
+                @else
+                    <a href="/login" class="text-fisiogreen font-bold">Iniciar sesión</a>
+                @endif
                 <a href="/citas" class="bg-fisiogreen text-white text-center py-3 rounded-full font-bold">Pedir cita</a>
             </div>
         </div>
