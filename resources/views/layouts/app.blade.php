@@ -36,8 +36,11 @@
                 <a href="/progreso" class="hover:text-fisiogreen transition {{ request()->is('progreso') ? 'text-fisiogreen bg-green-50 px-3 py-1.5 rounded-full' : '' }}">Mi Progreso</a>
                 
                 @if(session('rol') == 'doctor')
-                    <a href="/citas" class="hover:text-fisiogreen transition {{ request()->is('citas') ? 'text-fisiogreen bg-green-50 px-3 py-1.5 rounded-full' : '' }}">Citas</a>
                     <a href="/dashboard" class="hover:text-fisiogreen transition {{ request()->is('dashboard') ? 'text-fisiogreen bg-green-50 px-3 py-1.5 rounded-full' : '' }}">Dashboard</a>
+                @endif
+
+                @if(session('rol') == 'doctor' || session('rol') == 'recepcionista')
+                    <a href="/citas" class="hover:text-fisiogreen transition {{ request()->is('citas') ? 'text-fisiogreen bg-green-50 px-3 py-1.5 rounded-full' : '' }}">Citas</a>
                 @endif
             </div>
 
@@ -53,8 +56,8 @@
                     <a href="/login" class="hidden sm:block text-sm font-medium text-gray-600 hover:text-fisiogreen transition">Iniciar sesión</a>
                 @endif
                 
-                <!-- Botón Pedir Cita ARREGLADO (ahora es un enlace <a>) -->
-                <a href="/citas" class="hidden sm:block bg-fisiogreen text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-emerald-900 transition">Pedir cita</a>
+                <!-- Botón Pedir Cita ARREGLADO (Apunta a la página pública) -->
+                <a href="/agendar-cita" class="hidden sm:block bg-fisiogreen text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-emerald-900 transition">Pedir cita</a>
                 
                 <!-- Botón Hamburguesa (Móvil) -->
                 <button id="mobile-menu-btn" class="md:hidden text-gray-600 hover:text-fisiogreen transition focus:outline-none">
@@ -73,6 +76,9 @@
                 
                 @if(session('rol') == 'doctor')
                     <a href="/dashboard" class="hover:text-fisiogreen">Dashboard</a>
+                @endif
+
+                @if(session('rol') == 'doctor' || session('rol') == 'recepcionista')
                     <a href="/citas" class="hover:text-fisiogreen">Citas</a>
                 @endif
                 
@@ -82,7 +88,8 @@
                 @else
                     <a href="/login" class="text-fisiogreen font-bold">Iniciar sesión</a>
                 @endif
-                <a href="/citas" class="bg-fisiogreen text-white text-center py-3 rounded-full font-bold">Pedir cita</a>
+                <!-- Botón Pedir Cita Móvil (Apunta a la página pública) -->
+                <a href="/agendar-cita" class="bg-fisiogreen text-white text-center py-3 rounded-full font-bold">Pedir cita</a>
             </div>
         </div>
     </nav>

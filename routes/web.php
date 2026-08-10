@@ -22,6 +22,9 @@ Route::get('/ejercicios', function () {
 Route::get('/cuestionario', function () { return view('cuestionario'); });
 Route::get('/progreso', function () { return view('progreso'); });
 
+// RUTA PÚBLICA PARA PACIENTES: Información para pedir cita
+Route::get('/agendar-cita', function () { return view('citas_publicas'); });
+
 // ==========================================
 // PORTAL DE ACCESO (Login Visual)
 // ==========================================
@@ -34,6 +37,8 @@ Route::get('/simular-login/{rol}', function ($rol) {
     
     if($rol == 'doctor') {
         return redirect('/dashboard')->with('success', '¡Bienvenido Doctor! Sesión iniciada.');
+    } elseif($rol == 'recepcionista') {
+        return redirect('/citas')->with('success', '¡Bienvenida Recepcionista! Sesión iniciada.');
     } else {
         return redirect('/')->with('success', '¡Bienvenido Paciente! Sesión iniciada.');
     }
@@ -51,6 +56,11 @@ Route::middleware([\App\Http\Middleware\CheckRoleDoctor::class])->group(function
     
     // 0. NUEVA RUTA: Dashboard del Doctor (Resumen)
     Route::get('/dashboard', function () {
+        // Candado extra: Si entra la recepcionista, la rebotamos
+        if(session('rol') == 'recepcionista') {
+            abort(403, 'El Dashboard de métricas es exclusivo para los Médicos Titulares.');
+        }
+
         // Obtenemos la fecha de hoy
         $hoy = \Carbon\Carbon::now('America/Mexico_City')->toDateString();
         
@@ -128,10 +138,13 @@ Route::middleware([\App\Http\Middleware\CheckRoleDoctor::class])->group(function
     // NUEVAS RUTAS: SUBIR VIDEOS LOCALES
     // ==========================================
     Route::get('/ejercicios/crear', function () {
+        if(session('rol') == 'recepcionista') abort(403, 'Solo los médicos pueden subir terapias.');
         return view('ejercicios_crear');
     });
 
     Route::post('/ejercicios', function (Request $request) {
+        if(session('rol') == 'recepcionista') abort(403);
+        
         $ejercicio = new \App\Models\Ejercicio();
         $ejercicio->titulo = $request->input('titulo');
         $ejercicio->descripcion = $request->input('descripcion');
