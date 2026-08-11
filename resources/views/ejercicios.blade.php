@@ -5,37 +5,37 @@
 @section('content')
 
 @php
-// =========================================================
-// CATÁLOGO COMPLETO DE 18 EJERCICIOS (Con IDs extraídos)
-// =========================================================
-$lista_ejercicios = [
-    // ESPALDA
-    ['titulo' => 'Cat-Cow (Gato-Vaca)', 'desc' => 'Mejora la movilidad y flexibilidad de la columna vertebral baja y torácica.', 'youtube_id' => 'BWxZLqWKtGE', 'zona' => 'Espalda', 'nivel' => 'Básico', 'tiempo' => '5 min', 'reps' => '3 × 10 rep'],
-    ['titulo' => 'Enhebrar la aguja', 'desc' => 'Estiramiento profundo para liberar la tensión en la zona torácica y hombros.', 'youtube_id' => '0PI_GOIGTvA', 'zona' => 'Espalda', 'nivel' => 'Intermedio', 'tiempo' => '8 min', 'reps' => '3 × 10 rep'],
-    ['titulo' => 'Jefferson Curl', 'desc' => 'Fortalece y estira la cadena posterior. Realizar con peso ligero y control.', 'youtube_id' => 'zoyE8-vaKeE', 'zona' => 'Espalda', 'nivel' => 'Avanzado', 'tiempo' => '10 min', 'reps' => '4 × 8 rep'],
-    
-    // HOMBRO
-    ['titulo' => 'Rotación Externa con Banda', 'desc' => 'Fortalece el manguito rotador y previene lesiones articulares. Mantén el codo pegado.', 'youtube_id' => 'iNn_sNA6TbU', 'zona' => 'Hombro', 'nivel' => 'Básico', 'tiempo' => '5 min', 'reps' => '3 × 15 rep'],
-    ['titulo' => 'Serie Y-T-W (Banco Inclinado)', 'desc' => 'Mejora la estabilidad escapular y la postura general de los hombros.', 'youtube_id' => 'itvKYjCRZK0', 'zona' => 'Hombro', 'nivel' => 'Intermedio', 'tiempo' => '10 min', 'reps' => '3 × 12 rep'],
-    ['titulo' => 'Face Pull Isométrico', 'desc' => 'Trabajo intenso para los deltoides posteriores y trapecios. Sostén la contracción.', 'youtube_id' => 'JWGLMIvvDvM', 'zona' => 'Hombro', 'nivel' => 'Avanzado', 'tiempo' => '8 min', 'reps' => '4 × 10 rep'],
-
-        ['titulo' => 'Sentadilla Española', 'desc' => 'Fortalecimiento isométrico pesado, ideal para tendinopatías rotulianas severas.', 'youtube_id' => '9GE1LxLKXP4', 'zona' => 'Rodilla', 'nivel' => 'Avanzado', 'tiempo' => '12 min', 'reps' => '4 × 30s'],
-    ];
-
     // =========================================================
-    // UNIR VIDEOS SUBIDOS POR EL DOCTOR (DESDE LA BASE DE DATOS)
+    // CATÁLOGO DE EJERCICIOS DESDE LA BASE DE DATOS
     // =========================================================
+    $lista_ejercicios = [];
+
     if(isset($ejercicios_db)) {
         foreach($ejercicios_db as $ej) {
+            
+            $youtube_id = null;
+            $link_crudo = $ej->video_url ?? '';
+
+            if (!empty($link_crudo)) {
+                // ¡LA MAGIA ACTUALIZADA!: Ahora detecta también los "shorts/"
+                preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i', $link_crudo, $matches);
+                
+                if (isset($matches[1])) {
+                    $youtube_id = $matches[1]; // Lo encontró (sea Short, Embed o Normal)
+                } elseif (strlen(trim($link_crudo)) == 11) {
+                    $youtube_id = trim($link_crudo); // Era solo el código de 11 letras
+                }
+            }
+
             $lista_ejercicios[] = [
-                'titulo' => $ej->titulo,
-                'desc' => $ej->descripcion,
-                'youtube_id' => null, // No es de YouTube
-                'video_path' => $ej->imagen_url ?? null, // Es un video local
-                'zona' => $ej->lesion_recomendada ?? 'General',
-                'nivel' => $ej->dificultad ?? 'Básico',
-                'tiempo' => $ej->duracion ?? '5 min',
-                'reps' => $ej->repeticiones ?? '10 rep'
+                'titulo' => $ej->title,
+                'desc' => $ej->description,
+                'youtube_id' => $youtube_id,
+                'video_path' => $ej->image_url, 
+                'zona' => $ej->body_zone ?? 'General',
+                'nivel' => $ej->level ?? 'Básico',
+                'tiempo' => $ej->duration_minutes ? $ej->duration_minutes . ' min' : '5 min',
+                'reps' => $ej->repetitions ?? '10 rep'
             ];
         }
     }
@@ -69,7 +69,7 @@ $lista_ejercicios = [
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
         
         <!-- BUCLE DE LARAVEL PARA DIBUJAR LOS VIDEOS AUTOMÁTICAMENTE -->
-        @foreach($lista_ejercicios as $ejercicio)
+        @forelse($lista_ejercicios as $ejercicio)
             <div class="tarjeta-ejercicio bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col" data-zona="{{ strtolower($ejercicio['zona']) }}">
                 
                 <!-- Reproductor de YouTube o Local -->
@@ -99,11 +99,11 @@ $lista_ejercicios = [
                     </div>
                     
                     <div class="flex gap-2 mb-3">
-                        <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider {{ $ejercicio['nivel'] == 'Básico' ? 'bg-emerald-100 text-emerald-700' : ($ejercicio['nivel'] == 'Intermedio' ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700') }}">
-                            {{ $ejercicio['nivel'] }}
+                        <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider {{ strtolower($ejercicio['nivel']) == 'básico' || strtolower($ejercicio['nivel']) == 'beginner' ? 'bg-emerald-100 text-emerald-700' : (strtolower($ejercicio['nivel']) == 'intermedio' || strtolower($ejercicio['nivel']) == 'intermediate' ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700') }}">
+                            {{ ucfirst($ejercicio['nivel']) }}
                         </span>
                         <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-600">
-                            {{ $ejercicio['zona'] }}
+                            {{ ucfirst($ejercicio['zona']) }}
                         </span>
                     </div>
 
@@ -115,7 +115,11 @@ $lista_ejercicios = [
                     </div>
                 </div>
             </div>
-        @endforeach
+        @empty
+            <div class="col-span-2 text-center py-10">
+                <p class="text-gray-500">No hay ejercicios registrados en la base de datos.</p>
+            </div>
+        @endforelse
 
     </div>
 </div>
@@ -137,10 +141,10 @@ $lista_ejercicios = [
         // 3. Mostrar u ocultar las tarjetas dependiendo de la zona
         let tarjetas = document.querySelectorAll('.tarjeta-ejercicio');
         tarjetas.forEach(tarjeta => {
-            let zonaTarjeta = tarjeta.getAttribute('data-zona'); // Lee si es 'espalda', 'hombro', etc.
+            let zonaTarjeta = tarjeta.getAttribute('data-zona').toLowerCase(); // Lee si es 'espalda', 'hombro', etc.
             
             // Si el usuario eligió "todos" o si la zona de la tarjeta coincide, la mostramos
-            if (zonaSeleccionada === 'todos' || zonaTarjeta.includes(zonaSeleccionada)) {
+            if (zonaSeleccionada === 'todos' || zonaTarjeta.includes(zonaSeleccionada.toLowerCase())) {
                 tarjeta.style.display = 'flex';
             } else {
                 tarjeta.style.display = 'none'; // La ocultamos

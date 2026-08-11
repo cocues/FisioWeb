@@ -39,7 +39,7 @@
             <table class="w-full text-left text-sm text-gray-600 whitespace-nowrap">
                 <thead class="bg-white border-b border-gray-100 text-gray-500">
                     <tr>
-                        <th class="px-6 py-4 font-medium">ID Paciente</th>
+                        <th class="px-6 py-4 font-medium">Paciente</th>
                         <th class="px-6 py-4 font-medium">Fecha y Hora</th>
                         <th class="px-6 py-4 font-medium">Especialidad</th>
                         <th class="px-6 py-4 font-medium">Estado</th>
@@ -56,33 +56,33 @@
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                                 </div>
                                 <div>
-                                    <p class="font-medium text-gray-900">Usuario #{{ $cita->usuario_id ?? 'N/A' }}</p>
-                                    <p class="text-xs text-gray-400">Desde App Móvil</p>
+                                    <p class="font-medium text-gray-900">{{ $cita->paciente ? $cita->paciente->name : 'Usuario #'.$cita->user_id }}</p>
+                                    <p class="text-xs text-gray-400">{{ $cita->patient_email ?? 'Desde App Móvil' }}</p>
                                 </div>
                             </div>
                         </td>
                         <td class="px-6 py-4">
-                            <p class="font-medium text-gray-800">{{ $cita->fecha }}</p>
-                            <p class="text-xs text-gray-500">{{ $cita->hora }}</p>
+                            <p class="font-medium text-gray-800">{{ $cita->appointment_date }}</p>
+                            <p class="text-xs text-gray-500">{{ $cita->appointment_time }} hrs</p>
                         </td>
-                        <td class="px-6 py-4 text-gray-500">{{ $cita->especialidad }}</td>
+                        <td class="px-6 py-4 text-gray-500">{{ $cita->specialty }}</td>
                         <td class="px-6 py-4">
-                            @if($cita->estado == 'pendiente')
+                            @if($cita->status == 'pending')
                                 <span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-orange-50 text-orange-700 border border-orange-100">
                                     <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span> Pendiente
                                 </span>
-                            @elseif($cita->estado == 'cancelada')
+                            @elseif($cita->status == 'rejected' || $cita->status == 'cancelled')
                                 <span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-100">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Cancelada
+                                    <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Rechazada
                                 </span>
                             @else
                                 <span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-100">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> {{ ucfirst($cita->estado) }}
+                                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> {{ $cita->status == 'approved' ? 'Confirmada' : ucfirst($cita->status) }}
                                 </span>
                             @endif
                         </td>
                         <td class="px-6 py-4 text-right flex justify-end gap-2">
-                            @if($cita->estado == 'pendiente')
+                            @if($cita->status == 'pending')
                                 <!-- Botón Confirmar -->
                                 <form action="/citas/{{ $cita->id }}/estado" method="POST">
                                     @csrf
@@ -96,10 +96,10 @@
                                     @csrf
                                     @method('PUT')
                                     <input type="hidden" name="estado" value="cancelada">
-                                    <button type="submit" class="text-xs font-medium text-white bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded-lg transition-colors shadow-sm">Cancelar</button>
+                                    <button type="submit" class="text-xs font-medium text-white bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded-lg transition-colors shadow-sm">Rechazar</button>
                                 </form>
                             @else
-                                <button class="text-xs font-medium text-gray-400 bg-gray-100 px-3 py-1.5 rounded-lg cursor-not-allowed">Sin acciones</button>
+                                <button class="text-xs font-medium text-gray-400 bg-gray-100 px-3 py-1.5 rounded-lg cursor-not-allowed">Resuelta</button>
                             @endif
                         </td>
                     </tr>
@@ -109,7 +109,7 @@
                         <td colspan="5" class="px-6 py-10 text-center">
                             <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                             <p class="text-lg font-medium text-gray-900">Aún no hay citas</p>
-                            <p class="text-sm text-gray-500">Las citas agendadas desde la app móvil de tu compañero aparecerán aquí.</p>
+                            <p class="text-sm text-gray-500">Las citas agendadas desde la app móvil o la web aparecerán aquí.</p>
                         </td>
                     </tr>
                     @endforelse

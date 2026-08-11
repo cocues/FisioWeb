@@ -9,16 +9,23 @@ class Cita extends Model
 {
     use HasFactory;
 
-    // 1. Le decimos exactamente a qué tabla de MySQL se conecta
-    protected $table = 'citas';
+    protected $table = 'appointments';
 
-    // 2. Por seguridad, definimos qué columnas se pueden rellenar desde la App Móvil
     protected $fillable = [
-        'usuario_id', 
-        'fecha', 
-        'hora', 
-        'especialidad', 
-        'notas', 
-        'estado'
+        'user_id', 
+        'physiotherapist_id',
+        'appointment_date', 
+        'appointment_time', 
+        'specialty', 
+        'reason', 
+        'status',
+        'notes'
     ];
+
+    // ¡NUEVA FUNCIÓN! Le decimos cómo buscar al paciente
+    public function paciente()
+    {
+        // Una cita pertenece a un Usuario (apuntamos a la tabla 'users')
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }

@@ -64,10 +64,10 @@ Route::middleware([\App\Http\Middleware\CheckRoleDoctor::class])->group(function
         // Obtenemos la fecha de hoy
         $hoy = \Carbon\Carbon::now('America/Mexico_City')->toDateString();
         
-        // Hacemos que MySQL cuente las citas usando matemáticas
-        $citasHoy = Cita::whereDate('fecha', $hoy)->count();
-        $pendientes = Cita::where('estado', 'pendiente')->count();
-        $confirmadas = Cita::where('estado', 'confirmada')->count();
+        // CORRECCIÓN: Usar las columnas de la nueva tabla 'appointments'
+        $citasHoy = Cita::whereDate('appointment_date', $hoy)->count();
+        $pendientes = Cita::where('status', 'pending')->count();
+        $confirmadas = Cita::where('status', 'approved')->count();
         $totalCitas = Cita::count();
 
         // Mandamos esos números a la nueva pantalla
@@ -81,7 +81,8 @@ Route::middleware([\App\Http\Middleware\CheckRoleDoctor::class])->group(function
 
     // 1. Pantalla principal de citas
     Route::get('/citas', function () {
-        $citas_bd = Cita::orderBy('fecha', 'asc')->get();
+        // CORRECCIÓN: Ordenar por 'appointment_date'
+        $citas_bd = Cita::orderBy('appointment_date', 'asc')->get();
         return view('citas', ['citas' => $citas_bd]);
     });
 
@@ -91,7 +92,8 @@ Route::middleware([\App\Http\Middleware\CheckRoleDoctor::class])->group(function
         $hoy = \Carbon\Carbon::now('America/Mexico_City')->toDateString();
 
         // 2. Filtramos MySQL para que SOLO traiga las citas de hoy, ordenadas por hora
-        $citas_bd = Cita::whereDate('fecha', $hoy)->orderBy('hora', 'asc')->get();
+        // CORRECCIÓN: Usar 'appointment_date' y 'appointment_time'
+        $citas_bd = Cita::whereDate('appointment_date', $hoy)->orderBy('appointment_time', 'asc')->get();
         
         // 3. Cargamos la vista de HTML y la convertimos a PDF
         $pdf = Pdf::loadView('reporte_citas', ['citas' => $citas_bd]);
@@ -108,12 +110,17 @@ Route::middleware([\App\Http\Middleware\CheckRoleDoctor::class])->group(function
     // 4. Guardar la cita del formulario
     Route::post('/citas', function (Request $request) {
         $cita = new Cita();
-        $cita->usuario_id = 1; 
-        $cita->fecha = $request->input('fecha');
-        $cita->hora = $request->input('hora');
-        $cita->especialidad = $request->input('especialidad');
-        $cita->notas = $request->input('notas');
-        $cita->estado = 'confirmada'; 
+        // CORRECCIÓN: Adaptamos al nuevo esquema de la base de datos
+        // Como estamos simulando desde la web, usamos el paciente de prueba (ID 8 es Ian en la BD)
+        $cita->user_id = 8; 
+        $cita->physiotherapist_id = 2; // Asignamos al Dr. Carlos por defecto
+        
+        // Usamos los inputs en español del formulario, pero los guardamos en las columnas en inglés
+        $cita->appointment_date = $request->input('fecha');
+        $cita->appointment_time = $request->input('hora');
+        $cita->specialty = $request->input('especialidad');
+        $cita->notes = $request->input('notas');
+        $cita->status = 'approved'; // Guardamos como 'approved' (confirmada)
         $cita->save();
 
         // Agregamos el mensaje de éxito
@@ -124,11 +131,15 @@ Route::middleware([\App\Http\Middleware\CheckRoleDoctor::class])->group(function
     Route::put('/citas/{id}/estado', function (Request $request, $id) {
         $cita = Cita::find($id);
         if ($cita) {
-            $cita->estado = $request->input('estado');
+            // CORRECCIÓN: Mapeamos el estado de español a inglés
+            $estadoFrontend = $request->input('estado'); // Viene como 'confirmada' o 'cancelada'
+            $nuevoEstado = $estadoFrontend == 'confirmada' ? 'approved' : 'rejected';
+            
+            $cita->status = $nuevoEstado;
             $cita->save();
             
             // Evaluamos qué mensaje mostrar dependiendo del estado
-            $mensaje = $cita->estado == 'confirmada' ? 'La cita ha sido confirmada.' : 'La cita fue cancelada correctamente.';
+            $mensaje = $cita->status == 'approved' ? 'La cita ha sido confirmada.' : 'La cita fue cancelada correctamente.';
             return redirect('/citas')->with('success', $mensaje);
         }
         return redirect('/citas');
@@ -146,19 +157,20 @@ Route::middleware([\App\Http\Middleware\CheckRoleDoctor::class])->group(function
         if(session('rol') == 'recepcionista') abort(403);
         
         $ejercicio = new \App\Models\Ejercicio();
-        $ejercicio->titulo = $request->input('titulo');
-        $ejercicio->descripcion = $request->input('descripcion');
-        $ejercicio->lesion_recomendada = $request->input('zona');
-        $ejercicio->dificultad = $request->input('nivel');
-        $ejercicio->duracion = $request->input('tiempo');
-        $ejercicio->repeticiones = $request->input('reps');
+        // CORRECCIÓN PARA LA TABLA EXERCISES DE LA NUEVA BD
+        $ejercicio->title = $request->input('titulo');
+        $ejercicio->description = $request->input('descripcion');
+        $ejercicio->body_zone = $request->input('zona');
+        $ejercicio->level = $request->input('nivel');
+        $ejercicio->duration_minutes = $request->input('tiempo');
+        $ejercicio->repetitions = $request->input('reps');
 
         // MAGIA PARA GUARDAR EL VIDEO LOCAL
         if ($request->hasFile('video')) {
             // Guarda el video en storage/app/public/videos_ejercicios
             $path = $request->file('video')->store('videos_ejercicios', 'public');
-            // Reutilizamos la columna imagen_url de tu BD para guardar la ruta del video sin romper nada
-            $ejercicio->imagen_url = $path; 
+            // Reutilizamos la columna image_url para guardar la ruta del video 
+            $ejercicio->image_url = $path; 
         }
 
         $ejercicio->save();
