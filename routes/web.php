@@ -56,21 +56,18 @@ Route::middleware([\App\Http\Middleware\CheckRoleDoctor::class])->group(function
     
     // 0. NUEVA RUTA: Dashboard del Doctor (Resumen)
     Route::get('/dashboard', function () {
-        // Candado extra: Si entra la recepcionista, la rebotamos
         if(session('rol') == 'recepcionista') {
             abort(403, 'El Dashboard de métricas es exclusivo para los Médicos Titulares.');
         }
 
-        // Obtenemos la fecha de hoy
         $hoy = \Carbon\Carbon::now('America/Mexico_City')->toDateString();
         
-        // Hacemos que MySQL cuente las citas usando matemáticas
-        $citasHoy = Cita::whereDate('fecha', $hoy)->count();
-        $pendientes = Cita::where('estado', 'pendiente')->count();
-        $confirmadas = Cita::where('estado', 'confirmada')->count();
-        $totalCitas = Cita::count();
+        // Usamos DB::table('appointments') para saltarnos cualquier conflicto del modelo antiguo
+        $citasHoy = \Illuminate\Support\Facades\DB::table('appointments')->whereDate('appointment_date', $hoy)->count();
+        $pendientes = \Illuminate\Support\Facades\DB::table('appointments')->where('status', 'pending')->count();
+        $confirmadas = \Illuminate\Support\Facades\DB::table('appointments')->where('status', 'approved')->count();
+        $totalCitas = \Illuminate\Support\Facades\DB::table('appointments')->count();
 
-        // Mandamos esos números a la nueva pantalla
         return view('dashboard', [
             'citasHoy' => $citasHoy,
             'pendientes' => $pendientes,
@@ -81,23 +78,23 @@ Route::middleware([\App\Http\Middleware\CheckRoleDoctor::class])->group(function
 
     // 1. Pantalla principal de citas
     Route::get('/citas', function () {
-        $citas_bd = Cita::orderBy('fecha', 'asc')->get();
+        // Usamos DB::table('appointments') para asegurar que lea la tabla correcta sin errores
+        $citas_bd = \Illuminate\Support\Facades\DB::table('appointments')->orderBy('appointment_date', 'asc')->get();
         return view('citas', ['citas' => $citas_bd]);
     });
 
     // 2. NUEVA RUTA MAGICA: Descargar Reporte PDF (Agenda del Día)
-    Route::get('/citas/reporte/pdf', function () {
-        // 1. Obtenemos la fecha exacta de hoy en México
+   Route::get('/citas/reporte/pdf', function () {
         $hoy = \Carbon\Carbon::now('America/Mexico_City')->toDateString();
+        
+        $citas = \Illuminate\Support\Facades\DB::table('appointments')
+                    ->whereDate('appointment_date', $hoy)
+                    ->orderBy('appointment_time', 'asc')
+                    ->get();
 
-        // 2. Filtramos MySQL para que SOLO traiga las citas de hoy, ordenadas por hora
-        $citas_bd = Cita::whereDate('fecha', $hoy)->orderBy('hora', 'asc')->get();
-        
-        // 3. Cargamos la vista de HTML y la convertimos a PDF
-        $pdf = Pdf::loadView('reporte_citas', ['citas' => $citas_bd]);
-        
-        // 4. Forzamos la descarga del archivo en el navegador
-        return $pdf->download('Agenda_Del_Dia_FisioWeb.pdf');
+        // Apuntamos correctamente a la carpeta layouts.plantilla_pdf
+        $pdf = \PDF::loadView('layouts.plantilla_pdf', compact('citas'));
+        return $pdf->download('reporte-citas-' . $hoy . '.pdf');
     });
 
     // 3. Pantalla del formulario de nueva cita manual
@@ -105,19 +102,22 @@ Route::middleware([\App\Http\Middleware\CheckRoleDoctor::class])->group(function
         return view('citas_crear');
     });
 
-    // 4. Guardar la cita del formulario
-    Route::post('/citas', function (Request $request) {
-        $cita = new Cita();
-        $cita->usuario_id = 1; 
-        $cita->fecha = $request->input('fecha');
-        $cita->hora = $request->input('hora');
-        $cita->especialidad = $request->input('especialidad');
-        $cita->notas = $request->input('notas');
-        $cita->estado = 'confirmada'; 
-        $cita->save();
+    // Ruta POST para guardar la nueva cita desde la web
+    Route::post('/citas', function (\Illuminate\Http\Request $request) {
+        
+        // Insertamos directamente en la tabla 'appointments' con los nombres en inglés
+        \Illuminate\Support\Facades\DB::table('appointments')->insert([
+            'user_id'            => $request->input('usuario_id') ?? 1, // O el ID del usuario actual
+            'appointment_date'   => $request->input('fecha'),
+            'appointment_time'   => $request->input('hora'),
+            'specialty'          => $request->input('especialidad'),
+            'reason'             => $request->input('notas'),
+            'status'             => 'approved', // o 'pending' según prefieras
+            'created_at'         => now(),
+            'updated_at'         => now(),
+        ]);
 
-        // Agregamos el mensaje de éxito
-        return redirect('/citas')->with('success', '¡Nueva cita agendada con éxito!');
+        return redirect('/citas')->with('success', '¡Cita creada correctamente!');
     });
 
     // 5. Cambiar estado de la cita (Confirmar / Cancelar)

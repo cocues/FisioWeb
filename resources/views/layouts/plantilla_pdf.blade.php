@@ -39,13 +39,13 @@
         <tbody>
             @forelse($citas as $cita)
             <tr>
-                <td>Paciente #{{ $cita->usuario_id }}</td>
-                <td>{{ $cita->fecha }}</td>
-                <td>{{ $cita->hora }}</td>
-                <td>{{ $cita->especialidad }}</td>
+                <td>Paciente #{{ $cita->user_id }}</td>
+                <td>{{ $cita->appointment_date }}</td>
+                <td>{{ $cita->appointment_time }}</td>
+                <td>{{ $cita->specialty }}</td>
                 <td>
-                    <span class="badge {{ $cita->estado }}">
-                        {{ strtoupper($cita->estado) }}
+                    <span class="badge {{ $cita->status }}">
+                        {{ strtoupper($cita->status) }}
                     </span>
                 </td>
             </tr>

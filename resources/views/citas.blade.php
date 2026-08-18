@@ -62,27 +62,27 @@
                             </div>
                         </td>
                         <td class="px-6 py-4">
-                            <p class="font-medium text-gray-800">{{ $cita->fecha }}</p>
-                            <p class="text-xs text-gray-500">{{ $cita->hora }}</p>
+                            <p class="font-medium text-gray-800">{{ $cita->appointment_date }}</p>
+                            <p class="text-xs text-gray-500">{{ $cita->appointment_time }}</p>
                         </td>
-                        <td class="px-6 py-4 text-gray-500">{{ $cita->especialidad }}</td>
+                        <td class="px-6 py-4 text-gray-500">{{ $cita->specialty }}</td>
                         <td class="px-6 py-4">
-                            @if($cita->estado == 'pendiente')
+                            @if($cita->status == 'pendiente')
                                 <span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-orange-50 text-orange-700 border border-orange-100">
                                     <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span> Pendiente
                                 </span>
-                            @elseif($cita->estado == 'cancelada')
+                            @elseif($cita->status == 'cancelada')
                                 <span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-100">
                                     <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Cancelada
                                 </span>
                             @else
                                 <span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-100">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> {{ ucfirst($cita->estado) }}
+                                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> {{ ucfirst($cita->status) }}
                                 </span>
                             @endif
                         </td>
                         <td class="px-6 py-4 text-right flex justify-end gap-2">
-                            @if($cita->estado == 'pendiente')
+                            @if($cita->status == 'pendiente')
                                 <!-- Botón Confirmar -->
                                 <form action="/citas/{{ $cita->id }}/estado" method="POST">
                                     @csrf
